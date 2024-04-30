@@ -20,7 +20,11 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import info.barbarwalk.xpost.webapi.dto.OauthToken;
+import info.barbarwalk.xpost.webapi.dto.Tweets;
 import info.barbarwalk.xpost.webapi.dto.Users;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -54,6 +58,8 @@ public class XApiService {
 		private String oauth2TokenUrl;
 		/** ユーザー情報取得APIベースURL（users/me） */
 		private String usersMeUrl;
+		/** 投稿APIベースURL（tweets） */
+		private String tweetsUrl;
 	}
 
 	/** APIクライアント */
@@ -84,7 +90,6 @@ public class XApiService {
 		Date startTime = new Date();
 
 		// header設定
-		headers.add("Content-Type", "application/x-www-form-urlencoded");
 		HttpEntity<String> entity = new HttpEntity<>(headers);
 		if (method == HttpMethod.POST) {
 			entity = new HttpEntity<>(body, headers);
@@ -122,6 +127,7 @@ public class XApiService {
 		// ヘッダー
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", this.generateBasicAuthHeader());
+		headers.add("Content-Type", "application/x-www-form-urlencoded");
 
 		// queryパラメータ
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
@@ -163,6 +169,7 @@ public class XApiService {
 		// ヘッダー
 		HttpHeaders headers = new HttpHeaders();
 		headers.add("Authorization", "Bearer " + oauthToken.getAccessToken());
+		headers.add("Content-Type", "application/x-www-form-urlencoded");
 
 		// queryパラメータ
 		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
@@ -180,6 +187,44 @@ public class XApiService {
 		}
 
 		return users;
+	}
+
+	/**
+	 * 投稿API。
+	 *
+	 * @param oauthToken トークン情報
+	 * @param text ツイートするテキスト。
+	 * @throws JsonProcessingException
+	 */
+	public ResponseEntity<Tweets> postTweets(OauthToken oauthToken, String text) {
+		String apiUrl = this.xApiProperties.baseUrl + this.xApiProperties.tweetsUrl;
+
+		// ヘッダー
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + oauthToken.getAccessToken());
+		headers.add("Content-Type", "application/json");
+
+		// queryパラメータ
+		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
+
+		// POSTパラメータ
+		Map<String, String> postParams = new HashMap<String, String>();
+		postParams.put("text", text);
+
+		ResponseEntity<Tweets> tweets = null;
+		try {
+			// jsonに変換
+			ObjectMapper objectMapper = new ObjectMapper();
+			String body = objectMapper.writeValueAsString(postParams);
+
+			tweets = this.exchange(headers, apiUrl, Tweets.class,
+					HttpMethod.POST, queryParams, postParams, body);
+
+		} catch (Exception e) {
+			log.warn("投稿処理に失敗しました。：oauthToken=" + oauthToken, e);
+		}
+
+		return tweets;
 	}
 
 	/**

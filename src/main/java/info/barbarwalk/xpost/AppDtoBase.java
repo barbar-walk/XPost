@@ -1,4 +1,4 @@
-package info.barbarwalk.xpost.webapi.dto;
+package info.barbarwalk.xpost;
 
 import java.io.Serializable;
 
@@ -8,5 +8,5 @@ import lombok.Data;
  * DTO基底クラス。
  */
 @Data
-public class DtoBase implements Serializable {
+public class AppDtoBase implements Serializable {
 }

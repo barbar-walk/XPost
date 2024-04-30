@@ -9,18 +9,18 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 /**
- * X API ユーザー情報取得APIレスポンスクラス。
+ * X API 投稿APIレスポンスクラス。
  */
 @Data
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 @JsonIgnoreProperties(ignoreUnknown = true)
 @EqualsAndHashCode(callSuper = false)
-public class Users extends AppDtoBase {
+public class Tweets extends AppDtoBase {
 
 	/**
 	 * デフォルトコンストラクタ.
 	 */
-	public Users() {}
+	public Tweets() {}
 
 	/** レスポンス情報 */
 	private Data data;
@@ -33,11 +33,9 @@ public class Users extends AppDtoBase {
 	@JsonIgnoreProperties(ignoreUnknown = true)
 	@EqualsAndHashCode(callSuper = false)
 	public static class Data extends AppDtoBase {
-		/** デフォルト：一意の識別子 */
+		/** ツイートのID */
 		private String id;
-		/** デフォルト：フレンドリーネーム（表示名） */
-		private String name;
-		/** デフォルト：スクリーンネーム */
-		private String username;
+		/** ツイートのテキスト */
+		private String text;
 	}
 }

@@ -4,12 +4,19 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import info.barbarwalk.xpost.dto.RequestTweet;
 import info.barbarwalk.xpost.webapi.XApiService;
 import info.barbarwalk.xpost.webapi.dto.OauthToken;
+import info.barbarwalk.xpost.webapi.dto.Tweets;
 import info.barbarwalk.xpost.webapi.dto.Users;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.log4j.Log4j2;
@@ -71,6 +78,26 @@ public class HomeController {
 		// とりあえずセッションに保持。
 		session.setAttribute(SESSION_KEY_TOKEN, oauthToken);
 
+		return "redirect:/home";
+	}
+
+	/**
+	 * ホーム画面の表示。
+	 */
+	@GetMapping("home")
+	public String home(Model model) {
+
+		OauthToken oauthToken = (OauthToken) session.getAttribute(SESSION_KEY_TOKEN);
+
+		if (oauthToken == null) {
+			log.warn("セッションからトークンが取得できませんでした。");
+			return "redirect:/";
+		}
+
+		if (!model.containsAttribute("requestMember")) {
+			model.addAttribute("requestTweet", new RequestTweet());
+		}
+
 		// ユーザー情報取得
 		ResponseEntity<Users> responseUsers = xApiService.getMe(oauthToken);
 		log.info("ユーザー情報：responseUsers={}", responseUsers);
@@ -89,4 +116,39 @@ public class HomeController {
 		return "home";
 	}
 
+	/**
+	 * 投稿処理。
+	 */
+	@PostMapping("tweet")
+	public String tweet(@Validated @ModelAttribute RequestTweet requestTweet,
+			BindingResult result,
+			RedirectAttributes redirectAttributes) {
+
+		OauthToken oauthToken = (OauthToken) session.getAttribute(SESSION_KEY_TOKEN);
+
+		if (oauthToken == null) {
+			log.warn("セッションからトークンが取得できませんでした。");
+			return "redirect:/";
+		}
+
+		log.info("tweetアクションが呼ばれました。：requestTweet={}", requestTweet);
+
+		// バリデーション。
+		if (result.hasErrors()) {
+			log.warn("バリデーションエラーが発生しました。：requestTweet={}, result={}", requestTweet, result);
+
+			redirectAttributes.addFlashAttribute("validationErrors", result);
+			redirectAttributes.addFlashAttribute("requestTweet", requestTweet);
+
+			return "redirect:/home";
+		}
+
+		String text = requestTweet.getText();
+
+		ResponseEntity<Tweets> responseTweets = xApiService.postTweets(oauthToken, text);
+		Tweets tweets = responseTweets.getBody();
+		log.info("投稿完了：tweets={}", tweets);
+
+		return "redirect:/home";
+	}
 }
