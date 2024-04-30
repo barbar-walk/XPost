@@ -124,14 +124,14 @@ public class HomeController {
 			BindingResult result,
 			RedirectAttributes redirectAttributes) {
 
+		log.info("tweetアクションが呼ばれました。：requestTweet={}", requestTweet);
+
 		OauthToken oauthToken = (OauthToken) session.getAttribute(SESSION_KEY_TOKEN);
 
 		if (oauthToken == null) {
 			log.warn("セッションからトークンが取得できませんでした。");
 			return "redirect:/";
 		}
-
-		log.info("tweetアクションが呼ばれました。：requestTweet={}", requestTweet);
 
 		// バリデーション。
 		if (result.hasErrors()) {
