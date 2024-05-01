@@ -1,5 +1,7 @@
 package info.barbarwalk.xpost.webapi.dto;
 
+import java.util.UUID;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -21,6 +23,21 @@ public class Users extends AppDtoBase {
 	 * デフォルトコンストラクタ.
 	 */
 	public Users() {}
+
+	/**
+	 * コンストラクタ.
+	 * @param name フレンドリーネーム（表示名）
+	 * @param username スクリーンネーム
+	 */
+	public Users(String name, String username) {
+		this.data = new Data();
+
+		// TODO とりあえず適当にUUIDセット。
+		UUID uuid = UUID.randomUUID();
+		this.data.setId(uuid.toString());
+		this.data.setName(name);
+		this.data.setUsername(username);
+	}
 
 	/** レスポンス情報 */
 	private Data data;
