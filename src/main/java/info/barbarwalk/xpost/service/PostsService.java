@@ -51,4 +51,17 @@ public class PostsService {
 	public List<Posts> findByXAccountsId(Integer xAccountsId) {
 		return repository.findByxAccountsIdOrderByIdDesc(xAccountsId);
 	}
+
+	/**
+	 * 投稿データの削除を行う。
+	 * @param tweetId 投稿ID
+	 */
+	public void delete(String tweetId) {
+		// tweetIdから対象の投稿データを検索する。
+		Posts posts = repository.findByTweetId(tweetId).orElse(null);
+
+		if (posts != null) {
+			repository.delete(posts);
+		}
+	}
 }

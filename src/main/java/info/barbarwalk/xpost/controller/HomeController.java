@@ -10,6 +10,7 @@ import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -23,6 +24,7 @@ import info.barbarwalk.xpost.service.XAccountsService;
 import info.barbarwalk.xpost.webapi.XApiService;
 import info.barbarwalk.xpost.webapi.dto.OauthToken;
 import info.barbarwalk.xpost.webapi.dto.Tweets;
+import info.barbarwalk.xpost.webapi.dto.TweetsDelete;
 import info.barbarwalk.xpost.webapi.dto.Users;
 import jakarta.servlet.http.HttpSession;
 import lombok.extern.log4j.Log4j2;
@@ -189,6 +191,30 @@ public class HomeController {
 
 		// DBに保存。
 		postsService.save(xAccounts.getId(), tweets);
+
+		return "redirect:/home";
+	}
+
+	/**
+	 * 投稿削除処理。
+	 * @param id 削除対象の投稿ID
+	 */
+	@GetMapping("delete/{id}")
+	public String delete(@PathVariable String id) {
+
+		OauthToken oauthToken = (OauthToken) session.getAttribute(SESSION_KEY_TOKEN);
+
+		if (oauthToken == null) {
+			log.warn("セッションからトークンが取得できませんでした。：oauthToken={}", oauthToken);
+			return "redirect:/";
+		}
+
+		ResponseEntity<TweetsDelete> responseTweetsDelete = xApiService.deleteTweets(oauthToken, id);
+		TweetsDelete tweetsDelete = responseTweetsDelete.getBody();
+		log.info("投稿削除完了：tweetsDelete={}", tweetsDelete);
+
+		// 正常に完了したらDBも削除
+		postsService.delete(id);
 
 		return "redirect:/home";
 	}

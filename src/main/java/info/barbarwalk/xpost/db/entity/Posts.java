@@ -32,11 +32,11 @@ public class Posts extends EntityBase {
 	@Column(name = "x_accounts_id", nullable = false)
 	private Integer xAccountsId;
 
-	/** フレンドリーネーム（表示名） */
+	/** 投稿ID */
 	@Column(name = "tweet_id", nullable = false)
 	private String tweetId;
 
-	/** スクリーンネーム */
+	/** 本文 */
 	@Column(name = "tweet_text", nullable = false)
 	private String tweetText;
 }

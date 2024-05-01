@@ -25,6 +25,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import info.barbarwalk.xpost.webapi.dto.OauthToken;
 import info.barbarwalk.xpost.webapi.dto.Tweets;
+import info.barbarwalk.xpost.webapi.dto.TweetsDelete;
 import info.barbarwalk.xpost.webapi.dto.Users;
 import lombok.Data;
 import lombok.extern.log4j.Log4j2;
@@ -58,7 +59,7 @@ public class XApiService {
 		private String oauth2TokenUrl;
 		/** ユーザー情報取得APIベースURL（users/me） */
 		private String usersMeUrl;
-		/** 投稿APIベースURL（tweets） */
+		/** 投稿関連（投稿、削除）APIベースURL（tweets） */
 		private String tweetsUrl;
 	}
 
@@ -225,6 +226,43 @@ public class XApiService {
 		}
 
 		return tweets;
+	}
+
+	/**
+	 * 投稿削除API。
+	 *
+	 * @param oauthToken トークン情報
+	 * @param id 削除対象のツイートID
+	 */
+	public ResponseEntity<TweetsDelete> deleteTweets(OauthToken oauthToken, String id) {
+		String apiUrl =
+				this.xApiProperties.baseUrl + this.xApiProperties.tweetsUrl + "/" + id;
+
+		// ヘッダー
+		HttpHeaders headers = new HttpHeaders();
+		headers.add("Authorization", "Bearer " + oauthToken.getAccessToken());
+		headers.add("Content-Type", "application/json");
+
+		// queryパラメータ
+		MultiValueMap<String, String> queryParams = new LinkedMultiValueMap<String, String>();
+
+		// POSTパラメータ
+		Map<String, String> postParams = new HashMap<String, String>();
+
+		ResponseEntity<TweetsDelete> tweetsDelete = null;
+		try {
+			// jsonに変換
+			ObjectMapper objectMapper = new ObjectMapper();
+			String body = objectMapper.writeValueAsString(postParams);
+
+			tweetsDelete = this.exchange(headers, apiUrl, TweetsDelete.class,
+					HttpMethod.DELETE, queryParams, postParams, body);
+
+		} catch (Exception e) {
+			log.warn("投稿処理に失敗しました。：oauthToken=" + oauthToken, e);
+		}
+
+		return tweetsDelete;
 	}
 
 	/**

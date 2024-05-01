@@ -1,6 +1,7 @@
 package info.barbarwalk.xpost.db.repository;
 
 import java.util.List;
+import java.util.Optional;
 
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.PagingAndSortingRepository;
@@ -19,4 +20,11 @@ public interface PostsRepository extends PagingAndSortingRepository<Posts, Long>
 	 * @return 投稿情報の一覧を返す。
 	 */
 	List<Posts> findByxAccountsIdOrderByIdDesc(@Param("xAccountsId") Integer xAccountsId);
+
+	/**
+	 * 投稿IDで投稿データを検索する。
+	 * @param tweetId 投稿ID
+	 * @return 投稿情報を返す。
+	 */
+	Optional<Posts> findByTweetId(@Param("tweetId") String tweetId);
 }
